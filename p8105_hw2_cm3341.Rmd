@@ -56,36 +56,46 @@ nyc_transit_data %>%
 
 ## Problem 2
 
-Import and clean Mr. trash wheel dataset
+Import and clean Mr. trash wheel dataset. The `year` variable has to be mutated into the same type of variable so that the binding function can work the dataset merging step later on. I chose to make all years into numeric variables using `as.numeric`.
 ```{r}
 
-trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = c("NA", ".")) %>%
+mr_trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = c("NA", ".")) %>%
   janitor::clean_names() %>%
   slice(1:(n() - 2)) %>%
   mutate(sports_balls = as.integer(round(sports_balls, 0)),  
          trash_wheel = "Mr. Trash Wheel")%>%
-  select(-x15, -x16)
+  select(-x15, -x16)%>%
+  mutate(year = as.numeric(year))
 ```
 
 
-Import and clean professor trash wheel data
+Import and clean professor trash wheel data. 
 
 ```{r}
+
 prof_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", skip = 1, na = c("NA", ".")) %>%
   janitor::clean_names() %>%
   slice(1:(n() - 2)) %>%
-  mutate(trash_wheel = "Professor Trash Wheel")
+  mutate(trash_wheel = "Professor Trash Wheel")%>%
+  mutate(year = as.numeric(year))
   
 ```
 
-Import and clean gwynnda trash wheel data
+Import and clean gwynnda trash wheel data.
 ```{r}
 gwynnda_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1, na = c("NA", ".")) %>%
   janitor::clean_names() %>%
   slice(1:(n() - 1)) %>%
-  mutate(trash_wheel = "Gwynnda Trash Wheel")
+  mutate(trash_wheel = "Gwynnda Trash Wheel")%>%
+  mutate(year = as.numeric(year))
 ```
 
+Combine the three datasets. 
+
+```{r}
+
+full_trash_wheel_data = bind_rows(mr_trash_wheel_data, prof_wheel_data, gwynnda_wheel_data)
+```
 
 
 ## Problem 3
