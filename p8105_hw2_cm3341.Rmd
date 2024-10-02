@@ -5,28 +5,79 @@ date: "2024-10-01"
 output: 
   github_document:
     toc: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readxl)
 ```
 
-## R Markdown
+## Problem 1
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Import and clean dataset 
+```{r}
+nyc_transit_data = 
+  read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv", na = c("NA", "."))
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+nyc_transit_data = 
+    janitor::clean_names(nyc_transit_data)
 
-```{r cars}
-summary(cars)
+colnames(nyc_transit_data)
+
+nyc_transit_data = 
+  select(nyc_transit_data, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada)
+
+nyc_transit_data = nyc_transit_data %>%
+  mutate(entry_logical = case_when(
+    entry == "YES" ~ TRUE,
+    entry == "NO" ~ FALSE,
+    TRUE ~ NA
+  ))
 ```
 
-## Including Plots
+Dataset description: use inline code 
 
-You can also embed plots, for example:
+```{r}
+nyc_transit_data %>%
+  distinct(station_name, line) %>% 
+  nrow()
+```
+There are 465 distinct stations. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+nyc_transit_data %>%
+  filter(ada == "TRUE")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Problem 2
+
+Import and clean dataset
+```{r}
+
+trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = c("NA", ".")) %>%
+  janitor::clean_names() %>%
+  slice(1:(n() - 2)) %>%
+  mutate(sports_balls = as.integer(round(sports_balls, 0)),  
+         trash_wheel = "Mr. Trash Wheel")%>%
+  select(-x15, -x16, -trash_wheel)
+```
+
+
+```{r}
+
+```
+
+
+
+## Problem 3
+
+Requires merging
+```{r}
+
+```
+
