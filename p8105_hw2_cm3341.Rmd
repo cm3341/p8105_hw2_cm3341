@@ -224,7 +224,7 @@ Gwyndda Trash Wheel collected a total of `r total_cigs_gwynnda` in June 2022.
 
 ## Problem 3
 
-Import the `bakers` dataset. Used the separate command to split the full names in the *baker_name* column so I can use the first name as an ID variable across all of the datasets. There are people who have the same first name across series, but I will get around that by filtering by series first, and then by first name. 
+This problem uses data from the Great British Bake Off, a show that I watch and love. I began by importing the `bakers` dataset. Used the separate command to split the full names in the *baker_name* column so I can use the first name as an ID variable across all of the datasets. There are people who have the same first name across series, but I will get around that by filtering by series first, and then by first name. 
 
 ```{r}
 
