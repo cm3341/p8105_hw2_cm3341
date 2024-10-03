@@ -10,7 +10,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 library(tidyverse)
 library(readxl)
@@ -56,7 +56,7 @@ nyc_transit_data %>%
 
 ## Problem 2
 
-Import and clean Mr. trash wheel dataset. The `year` variable has to be mutated into the same type of variable so that the binding function can work the dataset merging step later on. I chose to make all years into numeric variables using `as.numeric`.
+Import and clean Mr. trash wheel dataset. The *year* variable has to be mutated into the same type of variable so that the binding function can work the dataset merging step later on. I chose to make all years into numeric variables using `as.numeric`.
 ```{r}
 
 mr_trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = c("NA", ".")) %>%
@@ -97,11 +97,76 @@ Combine the three datasets.
 full_trash_wheel_data = bind_rows(mr_trash_wheel_data, prof_wheel_data, gwynnda_wheel_data)
 ```
 
-
-## Problem 3
-
-Requires merging
+Calculate # of total observations in the combined dataset
 ```{r}
+total_rows <- nrow(full_trash_wheel_data)
 
 ```
 
+Calculate how many tons of trash were collected by professor trash wheel.
+```{r}
+
+prof_trash_weight = full_trash_wheel_data %>%
+  filter(trash_wheel == "Professor Trash Wheel") %>%
+  summarise(total_weight = sum(weight_tons, na.rm = TRUE))
+```
+
+
+```{r}
+gwynnda_cigs_062022 = full_trash_wheel_data %>%
+  filter(trash_wheel == "Gwynnda", format(as.Date(date), "%Y-%m") == "2022-06") %>%
+  summarise(total_cig_butts = sum(cigarette_butts, na.rm = TRUE))
+
+```
+
+The combined dataset from the three Trash Wheels contains `r total_rows` observations. 
+
+Professor Trash Wheel collected a total of `r prof_trash_weight` tons of trash. 
+
+- Issue with Gwynnda cigs, check code-
+
+## Problem 3
+
+Import the `bakers` dataset. Used the separate command to split the full names in the *baker_name* column so I can use the first name as an ID variable across all of the datasets. There are people who have the same first name across series, but I will get around that by filtering by series first, and then by first name. 
+```{r}
+
+bakers_data = 
+  read_csv("data/bakers.csv", na = c("NA", ".")) %>%  
+  janitor::clean_names()
+
+bakers_data = bakers_data %>%
+  separate(baker_name, into = c("first_name", "last_name"), sep = " ")
+
+```
+
+Imported the `bakes` dataset. I renamed the *baker* variable to *first_name* to standardize this variable across datasets. 
+
+```{r}
+bakes_data = 
+  read_csv("data/bakes.csv", na = c("NA", "."))%>%  
+  janitor::clean_names()
+
+bakes_data = 
+  bakes_data %>%
+  rename(first_name = baker)
+
+```
+
+
+Imported the `results` dataset. I renamed the *baker* variable to *first_name* to standardize this variable across datasets. 
+```{r}
+results_data = 
+  read_csv("data/results.csv", skip = 2, na = c("NA", "."))%>%  
+  janitor::clean_names()
+
+results_data = 
+  results_data %>%
+  rename(first_name = baker)
+```
+
+```{r, eval = FALSE}
+combined_bakes_bakers <- bakes_data %>%
+  left_join(bakers_data, by = c("series", "first_name"))
+```
+
+Check 
