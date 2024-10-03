@@ -99,7 +99,9 @@ trans_ent |>
 ## Problem 2
 
 This problem uses trash wheel datasets for three different trash wheel garbage collector vehicles (Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda Trash Wheel). These machines clean debris from various harbors. 
-First, I imported and cleaned the Mr. trash wheel dataset. The *year* variable has to be mutated into the same type of variable so that the binding function can work the dataset merging step later on. I chose to make all years into numeric variables using `as.numeric`.
+First, I imported and cleaned the Mr. trash wheel dataset. The *year* variable has to be mutated into the same type of variable so that the binding function can work the dataset merging step later on. I chose to make all years into numeric variables using `as.numeric`. 
+
+In my import, I skipped the first row as it contained unimportant information. Additionally, I used `slice` to remove the last two rows of the dataset that included some calculations. I then removed two more random columns that appear after import called *x15* and *x16*, which contained no information at all. 
 ```{r}
 
 mr_trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = c("NA", ".")) %>%
@@ -112,7 +114,7 @@ mr_trash_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx"
 ```
 
 
-Import and clean professor trash wheel data. 
+Import and clean professor trash wheel data. In my import, I skipped the first row as it contained unimportant information. Additionally, I used `slice` to remove the last two rows of the dataset that included some calculations.
 
 ```{r}
 
@@ -124,7 +126,8 @@ prof_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sh
   
 ```
 
-Import and clean gwynnda trash wheel data.
+Import and clean gwynnda trash wheel data.In my import, I skipped the first row as it contained unimportant information. Additionally, I used `slice` to remove the last row of the dataset that included some calculations.
+
 ```{r}
 gwynnda_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1, na = c("NA", ".")) %>%
   janitor::clean_names() %>%
@@ -133,20 +136,20 @@ gwynnda_wheel_data <- read_excel("data/202409 Trash Wheel Collection Data.xlsx",
   mutate(year = as.numeric(year))
 ```
 
-Combine the three datasets. 
+I combined the three datasets using the `bind_rows` function, since I need these rows to stack on top of each other. I tried merge functions first, but that didn't work. 
 
 ```{r}
 
 full_trash_wheel_data = bind_rows(mr_trash_wheel_data, prof_wheel_data, gwynnda_wheel_data)
 ```
 
-Calculate # of total observations in the combined dataset
+Calculated # of total observations in the combined dataset
 ```{r}
 total_rows <- nrow(full_trash_wheel_data)
 
 ```
 
-Calculate how many tons of trash were collected by professor trash wheel.
+Calculated how many tons of trash were collected by professor trash wheel.
 ```{r}
 
 prof_trash_weight = full_trash_wheel_data %>%
@@ -154,10 +157,17 @@ prof_trash_weight = full_trash_wheel_data %>%
   summarise(total_weight = sum(weight_tons, na.rm = TRUE))
 ```
 
+Calculate number of cigarette butts were collected in June 2022 by gwynnda trash wheel. I ran into a lot of issues trying to do this by filtering from a the gwynnda dataset directly, so I took a more long winded approach that resulted in the total sum of cigarette butts collected by gwynnda in June 2022. 
 
 ```{r}
-gwynnda_cigs_062022 = full_trash_wheel_data %>%
-  filter(trash_wheel == "Gwynnda", format(as.Date(date), "%Y-%m") == "2022-06") %>%
+
+gwynnda_cigs = gwynnda_wheel_data %>%
+  select(date, cigarette_butts)
+
+gwynnda_cigs = gwynnda_cigs %>%
+  mutate(date = as.Date(date, format = "%Y-%m-%d"))
+
+total_cigs_gwynnda = gwynnda_cigs %>%
   summarise(total_cig_butts = sum(cigarette_butts, na.rm = TRUE))
 
 ```
@@ -166,7 +176,7 @@ The combined dataset from the three Trash Wheels contains `r total_rows` observa
 
 Professor Trash Wheel collected a total of `r prof_trash_weight` tons of trash. 
 
-- Issue with Gwynnda cigs, check code-
+Gwyndda Trash Wheel collected a total of `r total_cigs_gwynnda` in June 2022. 
 
 ## Problem 3
 
@@ -240,8 +250,9 @@ bakes_data <- bakes_data %>%
   mutate(first_name = ifelse(first_name == "Jo", "Joanne", first_name))
 ```
 
+In looking through the separate datasets, I realized that the *bakers* dataset only has baker information for series 5-8. So in the full dataset, I won't have personal information, including last name, for bakers in series 9-10. 
 
-I can now begin to merge the datasets together using the `left_join` function, starting with the *bakers* and *bakes* datasets. I am merging the datasets based off the two variables they have in common, *series* and *first_name*.  
+I can now begin to merge the datasets together using the `full_join` function, starting with the *bakers* and *bakes* datasets. I am merging the datasets based off the two variables they have in common, *series* and *first_name*. I used `full_join` because I know that there is missing data for series 9-10. 
 
 ```{r}
 full_gbb_data = bakes_data %>%
@@ -286,4 +297,41 @@ Using the `kable` function, I can create a pretty and reader-friendly table summ
 kable(stars_winners_data)
 ```
 
-Based on the table, there were some predictable and unpredictable winners. From series 5, Nancy Birtwhistle was the winner, but she had only won star baker once, whereas Richard Burr had won star baker 5/10 episodes. That was a surprise. In series 6, the win could have really gone either way between Ian Cumming and the winner Nadiya Hussein, as they each won 3/10 star bakers. In series 7, Candice Brown was the predictable winner with 4/10 star bakers. 
+Based on the table, there were some predictable and unpredictable winners. From series 5, Nancy Birtwhistle was the winner, but she had only won star baker once, whereas Richard Burr had won star baker 5/10 episodes. That was a surprise. In series 6, the win could have really gone either way between Ian Cumming and the winner Nadiya Hussein, as they each won 3/10 star bakers. In series 7, Candice Brown was the predictable winner with 4/10 star bakers. In series 8, the winner was not predictable as it could have gone either way between Steven Carter- Bailey and winner Sophie Faldo, who each won 3/10 star bakers. In series 9 and 10, I don't have last names. In series 9, Rahul won and certainly had the most collective star baker wins out of everyone in the season with 3/10. However, in series 10, it really looked like Steph was going to win, with 4/10 star baker wins, but the winner was David, who had not won ANY of the star bakers throughout the season.
+
+From this information, if looks like most winners have around 3 star baker wins throughout the season. 
+
+
+Finally, I imported the *viewers* dataset. 
+```{r}
+viewers_data = 
+  read_csv(
+    "data/viewers.csv", na = c("NA", ".")) %>% 
+  janitor::clean_names()
+```
+
+View the first 10 rows of this dataset using the `head` function.
+
+```{r}
+head(viewers_data, 10)
+```
+
+Next, I calculated the average viewership in season 1.
+
+```{r}
+s1_avg_viewers = 
+  viewers_data %>%
+   summarise(avg_viewership = mean(series_1, na.rm = TRUE))
+```
+
+The average viewership in season 1 was `r s1_avg_viewers`, with a unit I assume to be million. 
+
+Finally, I calculated the average viewership in season 5.
+
+```{r}
+s5_avg_viewers = 
+  viewers_data %>%
+   summarise(avg_viewership = mean(series_5, na.rm = TRUE))
+```
+
+The average viewership in season 1 was `r s5_avg_viewers`, with a unit I assume to be million. 
