@@ -26,6 +26,7 @@ Load libraries
 ```{r}
 library(tidyverse)
 library(readxl)
+library(knitr)
 ```
 
 ## Problem 1
@@ -229,7 +230,6 @@ It was a little suspicious that both bakers with these discrepancies were from s
 bakers_data = bakers_data %>%
   mutate(first_name = ifelse(first_name == "Jo", "Joanne", first_name))
 
-
 ```
 
 I now also have to go through a similar process with the *bake* dataset, but her name appears as "Jo" with quotation marks. Therefore, I need to use the additional `gsub` function to remove those quotation marks, before I can use `mutate` to change her name to Joanne. 
@@ -245,14 +245,14 @@ I can now begin to merge the datasets together using the `left_join` function, s
 
 ```{r}
 full_gbb_data = bakes_data %>%
-  left_join(bakers_data, by = c("series", "first_name"))
+  full_join(bakers_data, by = c("series", "first_name"))
 ```
 
 It looks like the merge was successful, so I proceed to merge the full great British bake off dataset with the *results* dataset. I am merging the datasets based off the three variables they have in common, *series*, *episode*, and *first_name*.
 
 ```{r}
 full_gbb_data = full_gbb_data %>%
-  left_join(results_data, by = c("series", "episode", "first_name"))
+  full_join(results_data, by = c("series", "episode", "first_name"))
 ```
 
 The three datasets have been successfully merged. Now, to clean up the full dataset a bit more. The *last_name* variable is not next to the *first_name* variable, which makes navigating the dataset a bit non-intuitive. I also want to move the technical challenge to appear in the correct order next, between the columns for the other two challenges. I can do this by using the `relocate` function. The challenge order in the show is *signature*, *technical*, and then *show stopper*. 
@@ -266,8 +266,24 @@ full_gbb_data = full_gbb_data %>%
 
 The final dataset has the variable columns organized in a more intuitive manner, with names at the very beginning, followed by show related information, and personal information. The personal information for the bakers is unfortunately appears repeated since there are multiple rows per series with the same baker. I could not think of a way around this, but I can't think of a drawback for leaving those columns as such. 
 
-
+Next, I export the results to a csv file in my directory.
 ```{r}
 write_csv(full_gbb_data, "full_gbb_data.csv")
 ```
 
+To create the reader-friendly table showing the star bakers and winners, I create a new dataset just for the star bakers and winners from series 5 to 10. 
+```{r}
+stars_winners_data = 
+  full_gbb_data %>%
+  filter(
+    series >= 5 & series <= 10, result == "STAR BAKER" | result == "WINNER") %>%
+  select(
+    series, episode, first_name, last_name, result)
+```
+
+Using the `kable` function, I can create a pretty and reader-friendly table summarizing the start baker and winner data from the new *starts_winners_data* dataset. 
+```{r}
+kable(stars_winners_data)
+```
+
+Based on the table, there were some predictable and unpredictable winners. From series 5, Nancy Birtwhistle was the winner, but she had only won star baker once, whereas Richard Burr had won star baker 5/10 episodes. That was a surprise. In series 6, the win could have really gone either way between Ian Cumming and the winner Nadiya Hussein, as they each won 3/10 star bakers. In series 7, Candice Brown was the predictable winner with 4/10 star bakers. 
